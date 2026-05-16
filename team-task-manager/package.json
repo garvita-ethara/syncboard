@@ -1,0 +1,53 @@
+{
+  "name": "team-task-manager",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "description": "Production-ready full-stack Team Task Manager with RBAC, projects, tasks, dashboard, Prisma/PostgreSQL, and Railway deployment.",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "install": "echo Dependencies installed",
+    "setup": "npm --prefix frontend install && npm --prefix backend install",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "npm --prefix frontend run build && npm --prefix backend run build",
+    "start": "npm --prefix backend run start",
+    "start:railway": "npm run db:deploy && npm run start",
+    "start:local": "npm --prefix backend run start",
+    "db:generate": "npm --prefix backend run db:generate",
+    "db:migrate": "npm --prefix backend run db:migrate",
+    "db:deploy": "npm --prefix backend run db:deploy",
+    "db:seed": "npm --prefix backend run db:seed",
+    "lint:check": "npm --prefix backend run lint",
+    "install:all": "npm run setup"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "zod": "^3.23.8",
+    "prisma": "^5.22.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "latest",
+    "concurrently": "^9.1.0",
+    "nodemon": "^3.1.7",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  }
+}
