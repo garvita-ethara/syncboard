@@ -9,7 +9,7 @@
     "build": "node --check index.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma db push",
-    "db:deploy": "prisma migrate deploy",
+    "db:deploy": "prisma db push --accept-data-loss",
     "db:seed": "node prisma/seed.js",
     "lint": "node --check index.js"
   },
