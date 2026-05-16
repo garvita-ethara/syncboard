@@ -59,7 +59,8 @@ app.use('/api/tasks', tasksRouter);
 app.use('/api/team', teamRouter);
 app.use('/api/users', usersRouter);
 
-const publicDir = path.join(__dirname, 'dist', 'public');
+const publicDir = path.resolve(__dirname, 'dist', 'public');
+console.log(`📁 Serving static files from: ${publicDir}`);
 app.use(express.static(publicDir));
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) return next();
