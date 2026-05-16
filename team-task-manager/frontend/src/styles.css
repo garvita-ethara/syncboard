@@ -29,9 +29,9 @@
   --s-icon: 8px;
   --s-compact: 12px;
   --s-std: 16px;
-  --s-section: 24px;
-  --s-large: 32px;
-  --s-page: 32px;
+  --s-section: 32px;
+  --s-large: 48px;
+  --s-page: 48px;
   --gap-cards: 20px;
 
   /* Radius Scale - Apple Rounded */
@@ -45,8 +45,8 @@
   --shadow-premium: 0 8px 32px rgba(0,0,0,0.35);
 
   /* Layout Constants */
-  --nav-h: 80px;
-  --sidebar-w: 280px;
+  --nav-h: 96px;
+  --sidebar-w: 300px;
   --content-max: 1600px;
 }
 
@@ -83,8 +83,9 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--text-primary);
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.6;
   font-weight: 450;
+  letter-spacing: -0.01em;
 }
 .app-shell {
   height: 100vh;
@@ -387,19 +388,19 @@ body {
 
 /* Workspace Layout */
 .workspace {
-  margin-left: 280px;
+  flex: 1;
   height: 100vh;
-  /* Match viewport height */
   display: flex;
   flex-direction: column;
   background: var(--bg-main);
   overflow: hidden;
-  /* Prevent workspace itself from scrolling */
+  position: relative;
+  padding: 32px 32px 0 32px;
 }
 
 .content-shell {
   flex: 1;
-  padding: 24px 32px;
+  padding: 40px 64px;
   overflow-y: auto;
   scroll-behavior: smooth;
   background: var(--bg-main);
@@ -407,7 +408,7 @@ body {
 
 .content-container {
   max-width: var(--content-max);
-  margin: 0 auto;
+  margin: 0;
   width: 100%;
 }
 
@@ -653,60 +654,6 @@ button.ghost:hover {
   background: rgba(91, 140, 255, 0.12);
 }
 
-/* Dashboard Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-.stat-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  position: relative;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--elev-2);
-}
-
-.stat-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--bg-muted);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
-  margin-bottom: 4px;
-}
-
-.stat-card span {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.stat-card strong {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.stat-card.danger strong {
-  color: var(--danger);
-}
-
 /* Dashboard Specifics */
 .compact-chart-list {
   display: flex;
@@ -844,19 +791,6 @@ button.ghost:hover {
   justify-content: space-between;
   gap: 10px;
   color: var(--text-muted);
-  font-size: 12px;
-}
-
-.dashboard-page .stat-card {
-  min-height: 138px;
-  padding: 14px;
-}
-
-.dashboard-page .stat-card strong {
-  font-size: 39px;
-}
-
-.dashboard-page .stat-card span {
   font-size: 12px;
 }
 
@@ -1676,10 +1610,10 @@ td small {
   background: transparent;
   border: 0;
   width: 100%;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 14px;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1697,7 +1631,8 @@ td small {
   background: var(--accent-soft);
   color: var(--text-primary);
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(79, 140, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .nav-item-content {
@@ -1707,8 +1642,8 @@ td small {
 }
 
 .nav-icon-wrap {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   opacity: 0.7;
@@ -2543,21 +2478,19 @@ button.secondary:hover {
   max-width: 100%;
   margin: 0;
   display: grid;
-  gap: 24px;
-  /* Even tighter for higher density */
-  padding: 0 0 100px;
+  gap: 32px;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--s-section);
   margin-bottom: var(--s-large);
 }
 
 /* Clean Premium Cards */
 .stat-card {
-  padding: 24px;
+  padding: 32px;
   background: var(--bg-card);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
@@ -3205,16 +3138,18 @@ span {
 
 /* Top Navbar */
 .top-navbar {
-  height: var(--nav-h);
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--s-page);
+  padding: 0 64px;
   background: var(--bg-main);
   border-bottom: 1px solid var(--border);
   position: sticky;
-  top: 0;
+  top: 32px;
   z-index: 900;
+  margin: 0 32px 0 0;
+  border-radius: 24px;
 }
 
 .welcome-greeting h1 {

@@ -69,13 +69,6 @@ export default function Navbar({ onMobileMenu }) {
             </div>
           )}
         </div>
-
-        <button className="primary quick-add-btn">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          <span>New Task</span>
-        </button>
       </div>
     </nav>
   );

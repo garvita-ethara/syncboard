@@ -220,8 +220,8 @@ export default function App() {
             </aside>
 
             <div className="workspace">
-              <Navbar onMenuClick={() => setSidebarOpen(true)} />
-              <main className="content content-shell">
+              <Navbar onMobileMenu={() => setSidebarOpen(true)} />
+              <main className="content">
                 {content}
               </main>
             </div>

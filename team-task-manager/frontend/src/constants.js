@@ -10,3 +10,6 @@ export const memberStatusOptions = [
 ];
 
 export const roleOptions = ['ADMIN', 'MEMBER', 'GUEST'];
+
+export const API_BASE = '/api';
+export const TOKEN_KEY = 'ttm_token';

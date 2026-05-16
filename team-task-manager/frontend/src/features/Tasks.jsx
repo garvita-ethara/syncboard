@@ -387,7 +387,8 @@ export default function Tasks() {
   if (loading && !projects.length && !tasks.length) return <StateSkeleton title="Tasks" kind="table" />;
 
   return (
-    <section>
+    <section className="content-shell">
+      <div className="content-container">
       <PageHeader
         title="Tasks"
         action={(
@@ -712,6 +713,7 @@ export default function Tasks() {
         onClose={() => setTaskToDelete(null)}
         onConfirm={() => deleteTask(taskToDelete.id)}
       />
+      </div>
     </section>
   );
 }
