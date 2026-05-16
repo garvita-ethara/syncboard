@@ -19,7 +19,7 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build": "npm --prefix frontend run build && npm --prefix backend run build",
     "start": "npm --prefix backend run start",
-    "start:railway": "npm run db:deploy || echo 'Migration failed, starting anyway' && npm run start",
+    "start:railway": "npm run db:deploy && npm run db:seed && npm run start",
     "start:local": "npm --prefix backend run start",
     "db:generate": "npm --prefix backend run db:generate",
     "db:migrate": "npm --prefix backend run db:migrate",
