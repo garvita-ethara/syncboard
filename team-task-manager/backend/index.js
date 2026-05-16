@@ -71,6 +71,9 @@ app.get('*', (req, res, next) => {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`SyncBoard API listening on port ${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log('🚀 SyncBoard API started successfully');
+  console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔌 Listening on: 0.0.0.0:${port}`);
+  console.log(`🏥 Healthcheck: http://localhost:${port}/api/health`);
 });
