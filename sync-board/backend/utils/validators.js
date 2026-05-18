@@ -11,11 +11,7 @@ const strongPassword = z.string()
 export const signupSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80),
   email: z.string().trim().email().max(160).transform((email) => email.toLowerCase()),
-  password: strongPassword,
-  confirmPassword: strongPassword
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword']
+  password: strongPassword
 });
 
 export const loginSchema = z.object({
