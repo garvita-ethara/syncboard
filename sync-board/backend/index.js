@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import { ensureCompanyDemoData } from './utils/demoSeed.js';
 import { authRouter } from './routes/auth.routes.js';
 import { dashboardRouter } from './routes/dashboard.routes.js';
 import { projectsRouter } from './routes/projects.routes.js';
@@ -74,9 +75,19 @@ app.get('*', (req, res, next) => {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(port, '0.0.0.0', () => {
-  console.log('🚀 SyncBoard API started successfully');
-  console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔌 Listening on: 0.0.0.0:${port}`);
-  console.log(`🏥 Healthcheck: http://localhost:${port}/api/health`);
-});
+async function bootstrap() {
+  try {
+    await ensureCompanyDemoData();
+  } catch (err) {
+    console.error('⚠️ Demo seed repair failed (continuing startup):', err);
+  }
+
+  app.listen(port, '0.0.0.0', () => {
+    console.log('🚀 SyncBoard API started successfully');
+    console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔌 Listening on: 0.0.0.0:${port}`);
+    console.log(`🏥 Healthcheck: http://localhost:${port}/api/health`);
+  });
+}
+
+bootstrap();
