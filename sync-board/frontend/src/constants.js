@@ -1,4 +1,4 @@
-export const projectStatusOptions = ['NOT_STARTED', 'ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED'];
+export const projectStatusOptions = ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD'];
 export const priorityOptions = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 export const statusOptions = ['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED', 'OVERDUE'];
 
