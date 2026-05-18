@@ -48,6 +48,10 @@ secrets/
 *.db-journal
 *.db-shm
 *.db-wal
+
+# Generated Prisma files (should be generated fresh each deploy)
+backend/generated/
+sync-board/backend/generated/
 *.sqlite
 *.sqlite3
 backend/prisma/dev.db
