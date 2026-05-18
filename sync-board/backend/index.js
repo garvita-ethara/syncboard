@@ -14,6 +14,7 @@ import { profileRouter } from './routes/profile.routes.js';
 import { tasksRouter } from './routes/tasks.routes.js';
 import { teamRouter } from './routes/team.routes.js';
 import { usersRouter } from './routes/users.routes.js';
+import { adminRouter } from './routes/admin.routes.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -58,6 +59,7 @@ app.use('/api/projects', projectsRouter);
 app.use('/api/tasks', tasksRouter);
 app.use('/api/team', teamRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/admin', adminRouter);
 
 const publicDir = path.resolve(__dirname, 'dist', 'public');
 console.log(`📁 Serving static files from: ${publicDir}`);
