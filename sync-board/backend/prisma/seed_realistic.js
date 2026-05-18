@@ -10,6 +10,16 @@ const offsetDays = (days) => new Date(now.getTime() + (days * 24 * 60 * 60 * 100
 async function main() {
   console.log('🌱 Seeding realistic demo data...');
 
+  // Check if data already seeded
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: 'garvita.singh@gmail.com' }
+  });
+  
+  if (existingAdmin) {
+    console.log('✓ Data already seeded, skipping to avoid duplicates');
+    return;
+  }
+
   const passwordHash = await bcrypt.hash('Welcome@2025', 12);
 
   // 1. Create Admin User (First user)
