@@ -5,7 +5,7 @@
 SyncBoard is a production-ready full-stack orchestration platform designed for high-performance internal team collaboration. Featuring a refined "Obsidian Night" aesthetic, it combines military-grade reliability with an Apple-inspired minimalist interface.
 
 ![Obsidian Night UI](https://img.shields.io/badge/UI-Obsidian%20Night-black?style=for-the-badge)
-![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node%20%7C%20Prisma%20%7C%20PostgreSQL-blue?style=for-the-badge)
+![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Node%20%7C%20Prisma%20%7C%20SQLite%20%2F%20PostgreSQL-blue?style=for-the-badge)
 ![Deployment](https://img.shields.io/badge/Deployment-Railway-green?style=for-the-badge)
 
 ---
@@ -24,7 +24,7 @@ SyncBoard is a production-ready full-stack orchestration platform designed for h
 ## 🛠 Tech Stack
 
 - **Core**: React 18 + Vite (Frontend), Node.js + Express (Backend)
-- **Database**: Prisma ORM + PostgreSQL
+- **Database**: Prisma ORM with SQLite for local development and PostgreSQL for deployment
 - **Security**: JWT Authentication, bcryptjs password hashing
 - **Validation**: Zod schema validation
 - **Styling**: Vanilla CSS with a custom-engineered "Obsidian Night" design system
@@ -49,7 +49,8 @@ team-task-manager/
 
 ### Prerequisites
 - Node.js >= 20.0.0
-- PostgreSQL (Local or Cloud)
+- No local database setup required for development; `backend/prisma/dev.db` is included
+- PostgreSQL for hosted deployment
 
 ### 1. Installation
 ```bash
@@ -62,7 +63,7 @@ Create a `.env` file in the `backend/` directory using the provided `.env.exampl
 ### 3. Database Initialization
 ```bash
 npm run db:generate    # Generate Prisma Client
-npm run db:deploy      # Push schema to database
+npm run db:deploy      # Sync schema to local dev.db
 npm run db:seed        # Create default Admin user
 ```
 
@@ -70,7 +71,7 @@ npm run db:seed        # Create default Admin user
 ```bash
 npm run dev
 ```
-*Frontend: `http://localhost:5173` | Backend: `http://localhost:8081/api`*
+*Frontend: `http://localhost:5173` | Backend: `http://localhost:8082/api`*
 
 ---
 
