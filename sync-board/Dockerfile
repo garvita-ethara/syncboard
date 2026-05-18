@@ -8,6 +8,7 @@ RUN apt-get update -y && apt-get install -y openssl
 COPY package*.json ./
 COPY frontend/package*.json ./frontend/
 COPY backend/package*.json ./backend/
+COPY backend/prisma ./backend/prisma
 
 # Install dependencies
 RUN npm install
