@@ -67,6 +67,14 @@ npm run db:deploy      # Sync schema to local dev.db
 npm run db:seed        # Create default Admin user
 ```
 
+Optional demo data that matches the current UI:
+```bash
+cd backend
+node prisma/seed_demo.js
+```
+
+`seed_demo.js` expects the base admin user to already exist. It adds sample users, projects, task dates, task estimates, and task comments for a fuller demo experience.
+
 ### 4. Development Mode
 ```bash
 npm run dev

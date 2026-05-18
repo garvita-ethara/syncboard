@@ -21,9 +21,35 @@ frontend/dist/
 backend/.env
 frontend/.env
 
+# Secrets & credentials
+.envrc
+.npmrc
+secrets/
+.secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.jks
+*.p8
+*.der
+*.token
+*.secret
+*.credentials
+**/id_rsa
+**/id_dsa
+**/id_ecdsa
+**/id_ed25519
+
 # Databases
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
 backend/prisma/dev.db
 
 # Logs
