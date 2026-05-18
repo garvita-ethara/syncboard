@@ -14,6 +14,7 @@
     "db:deploy": "prisma db push --accept-data-loss",
     "db:seed": "node prisma/seed.js",
     "db:seed:realistic": "node prisma/seed_realistic.js",
+    "db:cleanup": "node prisma/cleanup.js",
     "postinstall": "npm run db:generate",
     "lint": "node --check index.js"
   },
