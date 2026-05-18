@@ -26,4 +26,5 @@ ENV NODE_ENV=production
 EXPOSE 8080
 
 # Run migrations and start
+# Trigger rebuild: 2026-05-18 v2
 CMD ["sh", "-c", "npm run start:railway"]
