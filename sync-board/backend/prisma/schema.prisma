@@ -129,3 +129,24 @@ model UserPreference {
 
   @@index([userId])
 }
+
+model ActivityLog {
+  id           String   @id @default(cuid())
+  actorId      String?
+  actorName    String
+  actorRole    String
+  action       String
+  entityType   String
+  entityId     String?
+  message      String
+  audience     String   @default("ADMINS")
+  projectId    String?
+  targetUserId String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([audience])
+  @@index([projectId])
+  @@index([targetUserId])
+  @@index([actorId])
+}

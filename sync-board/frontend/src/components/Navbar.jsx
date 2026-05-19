@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNotifications } from '../context/NotificationContext';
 import { dateLabel } from '../utils/dateUtils';
 
 export default function Navbar({ onMobileMenu, title = 'Dashboard' }) {
-  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef(null);
+
+  useEffect(() => {
+    function handleOutsideClick(event) {
+      if (!notifRef.current) return;
+      if (!notifRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    }
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showNotifications]);
 
   return (
     <nav className="top-navbar">
@@ -21,11 +35,11 @@ export default function Navbar({ onMobileMenu, title = 'Dashboard' }) {
       </div>
 
       <div className="navbar-actions">
-        <div className="nav-notif-wrap">
+        <div className="nav-notif-wrap" ref={notifRef}>
           <button
             className={`nav-icon-btn ${unreadCount > 0 ? 'has-unread' : ''}`}
             title="Notifications"
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => setShowNotifications((prev) => !prev)}
           >
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" />
@@ -36,10 +50,27 @@ export default function Navbar({ onMobileMenu, title = 'Dashboard' }) {
           {showNotifications && (
             <div className="notif-dropdown panel">
               <div className="notif-head">
-                <h3>Notifications</h3>
+                <div className="notif-title-wrap">
+                  <h3>Recent activity</h3>
+                  <span>{unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}</span>
+                </div>
                 <div className="notif-actions">
-                  <button className="text-btn">Mark all read</button>
-                  <button className="text-btn">Clear</button>
+                  <button
+                    className="text-btn"
+                    type="button"
+                    onClick={markAllAsRead}
+                    disabled={!notifications.length || unreadCount === 0}
+                  >
+                    Mark all read
+                  </button>
+                  <button
+                    className="text-btn danger"
+                    type="button"
+                    onClick={clearAll}
+                    disabled={!notifications.length}
+                  >
+                    Clear
+                  </button>
                 </div>
               </div>
               <div className="notif-list">

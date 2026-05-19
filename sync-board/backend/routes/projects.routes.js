@@ -4,6 +4,7 @@ import { ApiError, asyncHandler } from '../lib/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { addMemberSchema, idParamSchema, projectCreateSchema, projectMemberRoleSchema, projectUpdateSchema } from '../utils/validators.js';
 import { assertProjectAccess, projectVisibilityWhere } from '../utils/access.js';
+import { ACTIVITY_AUDIENCE, logActivity } from '../utils/activity.js';
 
 export const projectsRouter = express.Router();
 projectsRouter.use(requireAuth);
@@ -125,6 +126,15 @@ async function createProjectHandler(req, res) {
     include: projectInclude
   });
 
+  await logActivity(req.user, {
+    action: 'PROJECT_CREATED',
+    entityType: 'PROJECT',
+    entityId: project.id,
+    projectId: project.id,
+    audience: ACTIVITY_AUDIENCE.PROJECT_MEMBERS,
+    message: `${req.user.name} created project ${project.name}.`
+  });
+
   res.status(201).json({ project });
 }
 
@@ -157,6 +167,15 @@ async function updateProjectHandler(req, res) {
       ...(data.dueDate !== undefined ? { dueDate: data.dueDate ? new Date(data.dueDate) : null } : {})
     },
     include: projectInclude
+  });
+
+  await logActivity(req.user, {
+    action: 'PROJECT_UPDATED',
+    entityType: 'PROJECT',
+    entityId: project.id,
+    projectId: project.id,
+    audience: ACTIVITY_AUDIENCE.PROJECT_MEMBERS,
+    message: `${req.user.name} updated project ${project.name}.`
   });
 
   res.json({ project });
@@ -194,6 +213,15 @@ async function updateProjectMemberHandler(req, res) {
     include: { user: { select: userSelect } }
   });
 
+  await logActivity(req.user, {
+    action: 'PROJECT_MEMBER_ROLE_UPDATED',
+    entityType: 'PROJECT_MEMBER',
+    entityId: member.id,
+    projectId: id,
+    audience: ACTIVITY_AUDIENCE.PROJECT_MEMBERS,
+    message: `${req.user.name} changed ${member.user.name}'s role to ${member.role} in this project.`
+  });
+
   res.json({ member });
 }
 
@@ -223,6 +251,23 @@ async function deleteProjectMemberHandler(req, res) {
 
   await prisma.projectMember.delete({
     where: { projectId_userId: { projectId: id, userId: membership.userId } }
+  });
+
+  await logActivity(req.user, {
+    action: 'PROJECT_MEMBER_REMOVED',
+    entityType: 'PROJECT_MEMBER',
+    entityId: membership.id,
+    projectId: id,
+    audience: ACTIVITY_AUDIENCE.PROJECT_MEMBERS,
+    message: `${req.user.name} removed ${membership.user.name} from this project.`
+  });
+  await logActivity(req.user, {
+    action: 'PROJECT_MEMBER_REMOVED_SELF',
+    entityType: 'PROJECT_MEMBER',
+    entityId: membership.id,
+    audience: ACTIVITY_AUDIENCE.USER_AND_ADMINS,
+    targetUserId: membership.userId,
+    message: `You were removed from a project by ${req.user.name}.`
   });
   res.status(204).send();
 }
@@ -295,7 +340,19 @@ projectsRouter.delete('/:id', asyncHandler(async (req, res) => {
   assertAdmin(req);
   const { id } = idParamSchema.parse(req.params);
   await assertProjectAccess(req.user, id);
+  const project = await prisma.project.findUnique({
+    where: { id },
+    select: { id: true, name: true }
+  });
+  if (!project) throw new ApiError(404, 'Project not found');
   await prisma.project.delete({ where: { id } });
+  await logActivity(req.user, {
+    action: 'PROJECT_DELETED',
+    entityType: 'PROJECT',
+    entityId: project.id,
+    audience: ACTIVITY_AUDIENCE.ADMINS,
+    message: `${req.user.name} deleted project ${project.name}.`
+  });
   res.status(204).send();
 }));
 
@@ -347,6 +404,23 @@ projectsRouter.post('/:id/members', asyncHandler(async (req, res) => {
     update: { role: data.role },
     create: { projectId: id, userId: user.id, role: data.role },
     include: { user: { select: userSelect } }
+  });
+
+  await logActivity(req.user, {
+    action: 'PROJECT_MEMBER_ADDED',
+    entityType: 'PROJECT_MEMBER',
+    entityId: member.id,
+    projectId: id,
+    audience: ACTIVITY_AUDIENCE.PROJECT_MEMBERS,
+    message: `${req.user.name} added ${member.user.name} to this project.`
+  });
+  await logActivity(req.user, {
+    action: 'PROJECT_MEMBER_ADDED_SELF',
+    entityType: 'PROJECT_MEMBER',
+    entityId: member.id,
+    audience: ACTIVITY_AUDIENCE.USER_AND_ADMINS,
+    targetUserId: member.userId,
+    message: `You were added to a project by ${req.user.name}.`
   });
 
   res.status(201).json({ member });

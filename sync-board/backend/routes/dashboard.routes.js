@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { asyncHandler } from '../lib/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { projectVisibilityWhere } from '../utils/access.js';
+import { listVisibleActivities } from '../utils/activity.js';
 
 export const dashboardRouter = express.Router();
 dashboardRouter.use(requireAuth);
@@ -82,6 +83,7 @@ async function buildDashboardData(user) {
   const upcomingLimitDate = new Date(now);
   upcomingLimitDate.setDate(upcomingLimitDate.getDate() + 7);
   const isWorkspaceAdmin = user.role === 'ADMIN';
+  const recentActivity = await listVisibleActivities(user, { take: 20 });
 
   const manageableProjects = await prisma.project.findMany({
     where: {
@@ -241,6 +243,7 @@ async function buildDashboardData(user) {
         teamPerformance
       },
       recentTasks,
+      recentActivity,
       upcomingTasks,
       overdueTasksList: overdueTaskList,
       projectProgress: projectProgressSource.map(mapProjectProgress),
@@ -355,6 +358,7 @@ async function buildDashboardData(user) {
       teamPerformance
     },
     recentTasks,
+    recentActivity,
     upcomingTasks,
     overdueTasksList: overdueTaskList,
     myAssignedTasks: totalTasks,
@@ -420,6 +424,11 @@ dashboardRouter.get('/recent-tasks', asyncHandler(async (req, res) => {
     dashboardRole: data.dashboardRole,
     tasks: data.recentTasks
   });
+}));
+
+dashboardRouter.get('/recent-activity', asyncHandler(async (req, res) => {
+  const activities = await listVisibleActivities(req.user, { take: 25 });
+  res.json({ activities });
 }));
 
 dashboardRouter.get('/overdue-tasks', asyncHandler(async (req, res) => {

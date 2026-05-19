@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { ApiError, asyncHandler, sanitizeUser } from '../lib/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { idParamSchema, presenceSchema, userCreateSchema, userPasswordUpdateSchema, userSelfUpdateSchema, userUpdateSchema } from '../utils/validators.js';
+import { ACTIVITY_AUDIENCE, logActivity } from '../utils/activity.js';
 
 export const usersRouter = express.Router();
 usersRouter.use(requireAuth);
@@ -67,6 +68,15 @@ usersRouter.patch('/me/presence', asyncHandler(async (req, res) => {
       presence: data.presence,
       lastActive: new Date()
     }
+  });
+
+  await logActivity(req.user, {
+    action: 'USER_PRESENCE_UPDATED',
+    entityType: 'USER',
+    entityId: user.id,
+    audience: ACTIVITY_AUDIENCE.USER_AND_ADMINS,
+    targetUserId: user.id,
+    message: `${user.name} is now ${user.presence.toLowerCase()}.`
   });
 
   res.json({ user: sanitizeUser(user) });
@@ -209,6 +219,15 @@ usersRouter.post('/', asyncHandler(async (req, res) => {
     select: userBaseSelect
   });
 
+  await logActivity(req.user, {
+    action: 'USER_CREATED',
+    entityType: 'USER',
+    entityId: user.id,
+    audience: ACTIVITY_AUDIENCE.USER_AND_ADMINS,
+    targetUserId: user.id,
+    message: `${req.user.name} created member ${user.name}.`
+  });
+
   res.status(201).json({ user });
 }));
 
@@ -240,6 +259,15 @@ usersRouter.patch('/:id', asyncHandler(async (req, res) => {
     select: userBaseSelect
   });
 
+  await logActivity(req.user, {
+    action: 'USER_UPDATED',
+    entityType: 'USER',
+    entityId: user.id,
+    audience: ACTIVITY_AUDIENCE.USER_AND_ADMINS,
+    targetUserId: user.id,
+    message: `${req.user.name} updated ${user.name}'s profile.`
+  });
+
   res.json({ user });
 }));
 
@@ -262,6 +290,15 @@ usersRouter.patch('/:id/disable', asyncHandler(async (req, res) => {
     select: userBaseSelect
   });
 
+  await logActivity(req.user, {
+    action: 'USER_STATUS_TOGGLED',
+    entityType: 'USER',
+    entityId: user.id,
+    audience: ACTIVITY_AUDIENCE.USER_AND_ADMINS,
+    targetUserId: user.id,
+    message: `${req.user.name} ${user.isActive ? 'enabled' : 'disabled'} ${user.name}.`
+  });
+
   res.json({ user });
 }));
 
@@ -279,6 +316,15 @@ usersRouter.post('/:id/reset-password', asyncHandler(async (req, res) => {
     data: { passwordHash }
   });
 
+  await logActivity(req.user, {
+    action: 'USER_PASSWORD_RESET',
+    entityType: 'USER',
+    entityId: id,
+    audience: ACTIVITY_AUDIENCE.USER_AND_ADMINS,
+    targetUserId: id,
+    message: `${req.user.name} reset a member password.`
+  });
+
   res.json({ ok: true, message: 'Password reset successfully' });
 }));
 
@@ -289,6 +335,20 @@ usersRouter.delete('/:id', asyncHandler(async (req, res) => {
     throw new ApiError(400, 'You cannot delete your own account');
   }
 
+  const target = await prisma.user.findUnique({
+    where: { id },
+    select: { id: true, name: true }
+  });
+  if (!target) throw new ApiError(404, 'User not found');
+
   await prisma.user.delete({ where: { id } });
+
+  await logActivity(req.user, {
+    action: 'USER_DELETED',
+    entityType: 'USER',
+    entityId: target.id,
+    audience: ACTIVITY_AUDIENCE.ADMINS,
+    message: `${req.user.name} deleted member ${target.name}.`
+  });
   res.status(204).send();
 }));

@@ -4,6 +4,7 @@ import { ApiError, asyncHandler } from '../lib/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { idParamSchema, taskCommentCreateSchema, taskCreateSchema, taskUpdateSchema } from '../utils/validators.js';
 import { assertAssigneeIsProjectMember, assertProjectAccess, assertTaskAccess, getTaskPermissionContext } from '../utils/access.js';
+import { ACTIVITY_AUDIENCE, logActivity } from '../utils/activity.js';
 
 export const tasksRouter = express.Router();
 tasksRouter.use(requireAuth);
@@ -151,6 +152,25 @@ async function updateTaskHandler(req, res) {
     await syncProjectCompletionStatus(previousProjectId);
   }
 
+  await logActivity(req.user, {
+    action: 'TASK_UPDATED',
+    entityType: 'TASK',
+    entityId: task.id,
+    projectId: task.projectId,
+    audience: ACTIVITY_AUDIENCE.PROJECT_MEMBERS,
+    message: `${req.user.name} updated task ${task.title}.`
+  });
+  if (task.assignedTo) {
+    await logActivity(req.user, {
+      action: 'TASK_UPDATED_ASSIGNEE',
+      entityType: 'TASK',
+      entityId: task.id,
+      audience: ACTIVITY_AUDIENCE.USER_AND_ADMINS,
+      targetUserId: task.assignedTo,
+      message: `Task "${task.title}" assigned to you was updated by ${req.user.name}.`
+    });
+  }
+
   res.json({ task });
 }
 
@@ -187,6 +207,25 @@ tasksRouter.post('/', asyncHandler(async (req, res) => {
   });
 
   await syncProjectCompletionStatus(task.projectId);
+
+  await logActivity(req.user, {
+    action: 'TASK_CREATED',
+    entityType: 'TASK',
+    entityId: task.id,
+    projectId: task.projectId,
+    audience: ACTIVITY_AUDIENCE.PROJECT_MEMBERS,
+    message: `${req.user.name} created task ${task.title}.`
+  });
+  if (task.assignedTo) {
+    await logActivity(req.user, {
+      action: 'TASK_ASSIGNED',
+      entityType: 'TASK',
+      entityId: task.id,
+      audience: ACTIVITY_AUDIENCE.USER_AND_ADMINS,
+      targetUserId: task.assignedTo,
+      message: `${req.user.name} assigned you task "${task.title}".`
+    });
+  }
 
   res.status(201).json({ task });
 }));
@@ -239,6 +278,21 @@ tasksRouter.post('/:id/comments', asyncHandler(async (req, res) => {
     include: { user: { select: userSelect } }
   });
 
+  const baseTask = await prisma.task.findUnique({
+    where: { id },
+    select: { id: true, title: true, projectId: true, assignedTo: true }
+  });
+  if (baseTask) {
+    await logActivity(req.user, {
+      action: 'TASK_COMMENTED',
+      entityType: 'TASK_COMMENT',
+      entityId: comment.id,
+      projectId: baseTask.projectId,
+      audience: ACTIVITY_AUDIENCE.PROJECT_MEMBERS,
+      message: `${req.user.name} added an update on task ${baseTask.title}.`
+    });
+  }
+
   res.status(201).json({ comment });
 }));
 
@@ -258,5 +312,14 @@ tasksRouter.delete('/:id', asyncHandler(async (req, res) => {
 
   await prisma.task.delete({ where: { id } });
   await syncProjectCompletionStatus(existing.projectId);
+
+  await logActivity(req.user, {
+    action: 'TASK_DELETED',
+    entityType: 'TASK',
+    entityId: existing.id,
+    projectId: existing.projectId,
+    audience: ACTIVITY_AUDIENCE.PROJECT_MEMBERS,
+    message: `${req.user.name} deleted a task.`
+  });
   res.status(204).send();
 }));
