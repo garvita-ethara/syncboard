@@ -55,18 +55,9 @@ async function syncProjectCompletionStatus(projectId) {
 }
 
 function buildTaskFilter(user, query) {
-  const scope = String(query.scope || 'team');
   const baseVisibility = user.role === 'ADMIN'
     ? {}
-    : (scope === 'mine'
-      ? { assignedTo: user.id }
-      : {
-          OR: [
-            { assignedTo: user.id },
-            { project: { createdBy: user.id } },
-            { project: { members: { some: { userId: user.id } } } }
-          ]
-        });
+    : { assignedTo: user.id };
   const filters = [baseVisibility];
 
   if (query.search) {
@@ -122,7 +113,7 @@ async function updateTaskHandler(req, res) {
   const requestedKeys = Object.keys(data);
   const statusOnlyUpdate = requestedKeys.length > 0 && requestedKeys.every((key) => key === 'status');
 
-  if (req.user.role !== 'ADMIN' && !canManage) {
+  if (req.user.role !== 'ADMIN') {
     if (!(canUpdateOwnStatus && statusOnlyUpdate)) {
       throw new ApiError(403, 'Members can only update the status of tasks assigned to them');
     }
@@ -133,8 +124,8 @@ async function updateTaskHandler(req, res) {
   }
 
   if (data.assignedTo !== undefined) {
-    if (req.user.role !== 'ADMIN' && !canManage) {
-      throw new ApiError(403, 'Only admins or team leads can assign tasks');
+    if (req.user.role !== 'ADMIN') {
+      throw new ApiError(403, 'Only admins can assign tasks');
     }
     await assertAssigneeIsProjectMember(targetProjectId, data.assignedTo);
   }
@@ -174,6 +165,7 @@ tasksRouter.get('/', asyncHandler(async (req, res) => {
 }));
 
 tasksRouter.post('/', asyncHandler(async (req, res) => {
+  assertAdmin(req);
   const data = taskCreateSchema.parse(req.body);
   await assertProjectAccess(req.user, data.projectId, { manage: true });
   await assertAssigneeIsProjectMember(data.projectId, data.assignedTo);
@@ -234,7 +226,7 @@ tasksRouter.post('/:id/comments', asyncHandler(async (req, res) => {
   const { id } = idParamSchema.parse(req.params);
   const { canManage, canUpdateOwnStatus } = await getTaskPermissionContext(req.user, id);
   const data = taskCommentCreateSchema.parse(req.body);
-  if (req.user.role !== 'ADMIN' && !canManage && !canUpdateOwnStatus) {
+  if (req.user.role !== 'ADMIN' && !canUpdateOwnStatus) {
     throw new ApiError(403, 'You are not allowed to comment on this task');
   }
 
@@ -254,6 +246,7 @@ tasksRouter.put('/:id', asyncHandler(updateTaskHandler));
 tasksRouter.patch('/:id', asyncHandler(updateTaskHandler));
 
 tasksRouter.delete('/:id', asyncHandler(async (req, res) => {
+  assertAdmin(req);
   const { id } = idParamSchema.parse(req.params);
   await assertTaskAccess(req.user, id, { manage: true });
 

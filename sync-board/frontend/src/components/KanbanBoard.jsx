@@ -1,9 +1,9 @@
 import React from 'react';
 import { formatStatus } from '../utils/dateUtils';
 
-const COLUMNS = ['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED', 'OVERDUE'];
+const COLUMNS = ['NOT_STARTED', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'];
 
-export default function KanbanBoard({ tasks, onTaskClick, onStatusChange }) {
+export default function KanbanBoard({ tasks, onTaskClick }) {
   const tasksByStatus = COLUMNS.reduce((acc, status) => {
     acc[status] = tasks.filter((task) => task.status === status);
     return acc;

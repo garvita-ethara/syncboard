@@ -3,7 +3,7 @@ import { prisma } from '../lib/prisma.js';
 import { ApiError, asyncHandler } from '../lib/http.js';
 import { requireAuth } from '../middleware/auth.js';
 import { addMemberSchema, idParamSchema, projectCreateSchema, projectMemberRoleSchema, projectUpdateSchema } from '../utils/validators.js';
-import { assertProjectAccess } from '../utils/access.js';
+import { assertProjectAccess, projectVisibilityWhere } from '../utils/access.js';
 
 export const projectsRouter = express.Router();
 projectsRouter.use(requireAuth);
@@ -12,10 +12,6 @@ function assertAdmin(req) {
   if (req.user.role !== 'ADMIN') {
     throw new ApiError(403, 'Admin access required');
   }
-}
-
-async function assertProjectManager(req, projectId) {
-  await assertProjectAccess(req.user, projectId, { manage: true });
 }
 
 const userSelect = { id: true, name: true, email: true };
@@ -133,8 +129,9 @@ async function createProjectHandler(req, res) {
 }
 
 async function updateProjectHandler(req, res) {
+  assertAdmin(req);
   const { id } = idParamSchema.parse(req.params);
-  await assertProjectManager(req, id);
+  await assertProjectAccess(req.user, id);
   const data = projectUpdateSchema.parse(req.body);
   if (data.status === 'COMPLETED') {
     const pendingCount = await prisma.task.count({
@@ -166,9 +163,10 @@ async function updateProjectHandler(req, res) {
 }
 
 async function updateProjectMemberHandler(req, res) {
+  assertAdmin(req);
   const { id } = idParamSchema.parse(req.params);
   const { memberId } = req.params;
-  await assertProjectManager(req, id);
+  await assertProjectAccess(req.user, id);
   const data = projectMemberRoleSchema.parse(req.body);
 
   const project = await prisma.project.findUnique({
@@ -200,9 +198,10 @@ async function updateProjectMemberHandler(req, res) {
 }
 
 async function deleteProjectMemberHandler(req, res) {
+  assertAdmin(req);
   const { id } = idParamSchema.parse(req.params);
   const { memberId } = req.params;
-  await assertProjectManager(req, id);
+  await assertProjectAccess(req.user, id);
 
   const project = await prisma.project.findUnique({
     where: { id },
@@ -229,8 +228,14 @@ async function deleteProjectMemberHandler(req, res) {
 }
 
 projectsRouter.get('/', asyncHandler(async (req, res) => {
+  const visibility = projectVisibilityWhere(req.user);
   const projects = await prisma.project.findMany({
-    where: buildProjectListWhere(req.query),
+    where: {
+      AND: [
+        visibility,
+        buildProjectListWhere(req.query)
+      ]
+    },
     include: {
       ...projectInclude,
       tasks: { select: { status: true } }
@@ -253,6 +258,7 @@ projectsRouter.post('/', asyncHandler(createProjectHandler));
 
 projectsRouter.get('/:id', asyncHandler(async (req, res) => {
   const { id } = idParamSchema.parse(req.params);
+  await assertProjectAccess(req.user, id);
 
   const project = await prisma.project.findUnique({
     where: { id },
@@ -286,8 +292,9 @@ projectsRouter.put('/:id', asyncHandler(updateProjectHandler));
 projectsRouter.patch('/:id', asyncHandler(updateProjectHandler));
 
 projectsRouter.delete('/:id', asyncHandler(async (req, res) => {
+  assertAdmin(req);
   const { id } = idParamSchema.parse(req.params);
-  await assertProjectManager(req, id);
+  await assertProjectAccess(req.user, id);
   await prisma.project.delete({ where: { id } });
   res.status(204).send();
 }));
@@ -301,8 +308,9 @@ projectsRouter.get('/:id/members', asyncHandler(async (req, res) => {
 }));
 
 projectsRouter.post('/:id/members', asyncHandler(async (req, res) => {
+  assertAdmin(req);
   const { id } = idParamSchema.parse(req.params);
-  await assertProjectManager(req, id);
+  await assertProjectAccess(req.user, id);
   const data = addMemberSchema.parse(req.body);
 
   const user = await prisma.user.findUnique({ where: { email: data.email } });

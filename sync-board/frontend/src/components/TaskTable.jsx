@@ -1,10 +1,9 @@
 import React from 'react';
-import { statusOptions } from '../constants';
 import { formatStatus, dueLabel, isOverdue } from '../utils/dateUtils';
 import EmptyState from './EmptyState';
 import ClickableUser from './ClickableUser';
 
-export default function TaskTable({ tasks, onStatusChange, onDelete, compact = false }) {
+export default function TaskTable({ tasks, onDelete, compact = false }) {
   if (!tasks?.length) {
     return (
       <EmptyState
@@ -37,13 +36,7 @@ export default function TaskTable({ tasks, onStatusChange, onDelete, compact = f
               <td data-label="Priority"><span className={`priority ${String(task.priority).toLowerCase()}`}>{formatStatus(task.priority)}</span></td>
               <td data-label="Due">{dueLabel(task.dueDate)}</td>
               <td data-label="Status">
-                {onStatusChange ? (
-                  <select value={task.status} onChange={(e) => onStatusChange(task, e.target.value)}>
-                    {statusOptions.map((status) => <option key={status}>{status}</option>)}
-                  </select>
-                ) : (
-                  <span className="status-pill">{formatStatus(task.status)}</span>
-                )}
+                <span className="status-pill">{formatStatus(task.status)}</span>
               </td>
               {onDelete && (
                 <td data-label="Actions">

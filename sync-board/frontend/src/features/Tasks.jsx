@@ -12,7 +12,6 @@ import { useToast } from '../components/ui';
 import ClickableUser from '../components/ClickableUser';
 import StateSkeleton from '../components/StateSkeleton';
 import ErrorCard from '../components/ErrorCard';
-import KanbanBoard from '../components/KanbanBoard';
 import Stat from '../components/Stat';
 
 function getProjectPermission(project, userId, role) {
@@ -61,7 +60,10 @@ export default function Tasks() {
     sort: 'newest'
   });
   const [filterDraft, setFilterDraft] = useState(filters);
-  const [viewMode, setViewMode] = useState(() => localStorage.getItem('tasks:view') || 'grid');
+  const [viewMode, setViewMode] = useState(() => {
+    const saved = localStorage.getItem('tasks:view') || 'grid';
+    return saved === 'board' ? 'grid' : saved;
+  });
   const [quickSort, setQuickSort] = useState(() => localStorage.getItem('tasks:quickSort') || 'recent');
   const [listSort, setListSort] = useState({ key: 'createdAt', direction: 'desc' });
   const [search, setSearch] = useState('');
@@ -181,18 +183,6 @@ export default function Tasks() {
     }
   }
 
-  async function updateStatus(task, status) {
-    setError('');
-    try {
-      await api.patch(`/tasks/${task.id}`, { status });
-      setSuccess('Task status updated successfully.');
-      toast?.pushToast({ type: 'success', title: 'Status updated', message: 'Task status has been updated.' });
-      await load(filters);
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
   async function updateTask(event) {
     event.preventDefault();
     if (!editingTask) return;
@@ -288,11 +278,6 @@ export default function Tasks() {
     if (isAdmin) return true;
     const sourceProject = projects.find((project) => project.id === task.projectId);
     return getProjectPermission(sourceProject, user.id, user.role).canManage;
-  }
-
-  function canUpdateTaskStatus(task) {
-    if (canManageTask(task)) return true;
-    return task.assignedTo === user.id;
   }
 
   const detailCanComment = detailTask ? (canManageTask(detailTask) || detailTask.assignedTo === user.id) : false;
@@ -431,7 +416,7 @@ export default function Tasks() {
               </select>
             </div>
             <div className="view-icon-toggle" role="tablist" aria-label="Task view">
-              <button className={`ghost icon-btn ${viewMode === 'board' ? 'active-view' : ''}`} type="button" aria-label="Board view" title="Board view" onClick={() => { setViewMode('board'); localStorage.setItem('tasks:view', 'board'); }}>
+              <button className={`ghost icon-btn ${viewMode === 'grid' ? 'active-view' : ''}`} type="button" aria-label="Grid view" title="Grid view" onClick={() => { setViewMode('grid'); localStorage.setItem('tasks:view', 'grid'); }}>
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
               </button>
               <button className={`ghost icon-btn ${viewMode === 'list' ? 'active-view' : ''}`} type="button" aria-label="List view" title="List view" onClick={() => { setViewMode('list'); localStorage.setItem('tasks:view', 'list'); }}>
@@ -496,16 +481,7 @@ export default function Tasks() {
         <Stat label="Overdue" value={summary.overdueTasks} />
       </div>
 
-      {viewMode === 'board' ? (
-        <KanbanBoard
-          tasks={sortedTasks}
-          onTaskClick={(task) => {
-            setDetailTask(task);
-            setDetailOpen(true);
-          }}
-          onStatusChange={updateStatus}
-        />
-      ) : viewMode === 'list' ? (
+      {viewMode === 'list' ? (
         <div className="panel table-wrap">
           <table className="tasks-list-table">
             <thead>
@@ -533,7 +509,6 @@ export default function Tasks() {
               }).map((task) => {
                 const overdue = isOverdue(task);
                 const canManage = canManageTask(task);
-                const canUpdateStatus = canUpdateTaskStatus(task);
                 return (
                   <tr key={task.id} className={overdue ? 'overdue-row' : ''}>
                     <td data-label="Title">
@@ -544,11 +519,7 @@ export default function Tasks() {
                     <td data-label="Team">{task.project?.team || '-'}</td>
                     <td data-label="Assignee">{task.assignee ? <ClickableUser user={task.assignee} className="member-cell" /> : 'Unassigned'}</td>
                     <td data-label="Status">
-                      {canUpdateStatus ? (
-                        <select className="ui-select-trigger" value={task.status} onChange={(e) => updateStatus(task, e.target.value)}>
-                          {statusOptions.map((status) => <option key={status} value={status}>{formatStatus(status)}</option>)}
-                        </select>
-                      ) : <span className={`status-pill ${task.status.toLowerCase()}`}>{formatStatus(task.status)}</span>}
+                      <span className={`status-pill ${task.status.toLowerCase()}`}>{formatStatus(task.status)}</span>
                     </td>
                     <td data-label="Priority"><span className={`priority ${String(task.priority).toLowerCase()}`}>{formatStatus(task.priority)}</span></td>
                     <td data-label="Due Date">{overdue ? <span className="overdue-badge">Overdue</span> : dueLabel(task.dueDate)}</td>
@@ -582,7 +553,6 @@ export default function Tasks() {
           ) : quickSortedTasks.map((task) => {
             const overdue = isOverdue(task);
             const canManage = canManageTask(task);
-            const canUpdateStatus = canUpdateTaskStatus(task);
             return (
               <article key={task.id} className={`tasks-grid-card ${overdue ? 'is-overdue' : ''}`}>
                 <div className="tasks-grid-head">
@@ -610,11 +580,7 @@ export default function Tasks() {
                   <span>{task.estimatedTime || 'No estimate'}</span>
                 </div>
                 <div className="tasks-grid-foot">
-                  {canUpdateStatus ? (
-                    <select className="ui-select-trigger" value={task.status} onChange={(e) => updateStatus(task, e.target.value)}>
-                      {statusOptions.map((status) => <option key={status} value={status}>{formatStatus(status)}</option>)}
-                    </select>
-                  ) : <span className={`priority ${String(task.priority).toLowerCase()}`}>{formatStatus(task.priority)}</span>}
+                  <span className={`priority ${String(task.priority).toLowerCase()}`}>{formatStatus(task.priority)}</span>
                   <div className="task-inline-actions">
                     <button className="ghost icon-btn task-icon-btn" type="button" title="View task" aria-label="View task" onClick={() => openDetails(task)}>
                       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" /><circle cx="12" cy="12" r="3" /></svg>

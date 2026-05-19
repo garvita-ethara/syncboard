@@ -81,6 +81,10 @@ export default function ProfileMenu({
             <span>Current status</span>
             <strong>{presenceOptions.find((item) => item.value === currentPresence)?.label || 'Online'}</strong>
           </div>
+          <button className="ghost profile-view-btn" type="button" onClick={() => { setOpen(false); navigate('/settings'); }}>
+            View profile
+          </button>
+          <small className="profile-status-label">Change status</small>
           <div className="profile-presence-grid">
             {presenceOptions.map((option) => (
               <button
@@ -95,7 +99,6 @@ export default function ProfileMenu({
             ))}
           </div>
           <div className="profile-menu-actions">
-            <button className="ghost" type="button" onClick={() => { setOpen(false); navigate('/settings'); }}>Settings</button>
             <button className="ghost logout-btn" type="button" onClick={() => { setOpen(false); onLogout?.(); }}>Logout</button>
           </div>
         </div>

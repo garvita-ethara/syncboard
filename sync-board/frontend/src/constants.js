@@ -1,6 +1,6 @@
 export const projectStatusOptions = ['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD'];
-export const priorityOptions = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
-export const statusOptions = ['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED', 'OVERDUE'];
+export const priorityOptions = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
+export const statusOptions = ['NOT_STARTED', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'];
 
 export const memberStatusOptions = [
   { label: 'Active', color: '#1ED760' },

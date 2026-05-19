@@ -22,9 +22,25 @@ const userSelect = {
 export const teamRouter = express.Router();
 teamRouter.use(requireAuth);
 
-teamRouter.get('/', asyncHandler(async (_req, res) => {
+teamRouter.get('/', asyncHandler(async (req, res) => {
+  let where = { isActive: true };
+  if (req.user.role !== 'ADMIN') {
+    const myMemberships = await prisma.projectMember.findMany({
+      where: { userId: req.user.id },
+      select: { projectId: true }
+    });
+    const projectIds = myMemberships.map((item) => item.projectId);
+    if (projectIds.length === 0) {
+      return res.json({ users: [] });
+    }
+    where = {
+      isActive: true,
+      memberships: { some: { projectId: { in: projectIds } } }
+    };
+  }
+
   const users = await prisma.user.findMany({
-    where: { isActive: true },
+    where,
     select: userSelect,
     orderBy: [{ name: 'asc' }]
   });

@@ -96,8 +96,30 @@ usersRouter.patch('/me/password', asyncHandler(async (req, res) => {
 }));
 
 usersRouter.get('/team', asyncHandler(async (req, res) => {
+  let teamUserFilter = { isActive: true };
+  if (req.user.role !== 'ADMIN') {
+    const myMemberships = await prisma.projectMember.findMany({
+      where: { userId: req.user.id },
+      select: { projectId: true }
+    });
+    const projectIds = myMemberships.map((item) => item.projectId);
+
+    if (projectIds.length === 0) {
+      return res.json({ users: [], totalTasksCount: 0 });
+    }
+
+    teamUserFilter = {
+      isActive: true,
+      memberships: {
+        some: {
+          projectId: { in: projectIds }
+        }
+      }
+    };
+  }
+
   const users = await prisma.user.findMany({
-    where: { isActive: true },
+    where: teamUserFilter,
     select: {
       ...userBaseSelect,
       _count: {
@@ -107,7 +129,11 @@ usersRouter.get('/team', asyncHandler(async (req, res) => {
     orderBy: [{ name: 'asc' }]
   });
 
-  const totalTasksCount = await prisma.task.count();
+  const totalTasksCount = await prisma.task.count({
+    where: req.user.role === 'ADMIN'
+      ? {}
+      : { assignedTo: req.user.id }
+  });
 
   const completedByUser = await prisma.task.groupBy({
     by: ['assignedTo'],

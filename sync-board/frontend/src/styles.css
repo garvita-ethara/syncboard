@@ -2481,10 +2481,10 @@ td small {
 .modal,
 .modal-card {
   background: var(--bg-surface);
-  border-radius: 20px;
+  border-radius: 22px;
   box-shadow: var(--shadow-premium);
-  border: 1px solid var(--border);
-  width: min(720px, 100%);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  width: min(820px, 100%);
   max-height: calc(100vh - 64px);
   display: flex;
   flex-direction: column;
@@ -2493,7 +2493,7 @@ td small {
 
 .modal-head,
 .modal-header {
-  padding: 20px 24px;
+  padding: 20px 24px 16px;
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
@@ -2501,8 +2501,14 @@ td small {
   gap: 12px;
 }
 
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
 .modal-body {
-  padding: 24px;
+  padding: 20px 24px 24px;
   overflow-y: auto;
   max-height: calc(100vh - 220px);
 }
@@ -2517,9 +2523,75 @@ td small {
 }
 
 .modal-close {
-  padding: 8px 12px;
+  padding: 8px 14px;
   font-size: 12px;
   border-radius: 10px;
+  white-space: nowrap;
+}
+
+.modal-form {
+  display: grid;
+  gap: 14px;
+}
+
+.modal-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.modal-form input,
+.modal-form select,
+.modal-form textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-card) 88%, #fff 12%);
+  color: var(--text-primary);
+  padding: 11px 12px;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-form input:focus,
+.modal-form select:focus,
+.modal-form textarea:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.modal-form .panel {
+  margin: 0;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-card) 90%, #fff 10%);
+  padding: 14px;
+}
+
+.modal-form .checkbox {
+  align-items: flex-start;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+.modal-form .checkbox input {
+  margin-top: 2px;
+}
+
+.modal-form .submit-btn,
+.modal-form .primary[type="submit"] {
+  width: auto;
+  min-width: 150px;
+  justify-self: end;
+}
+
+.minimal-form-actions {
+  margin-top: 4px;
+  justify-content: flex-end;
 }
 
 /* Status & Priority Pills */
@@ -3811,9 +3883,26 @@ button.secondary:hover {
 
 .profile-menu-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 8px;
+}
+
+.profile-view-btn {
+  width: 100%;
+  justify-content: flex-start;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.profile-status-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .presence-icon {

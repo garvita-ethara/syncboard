@@ -25,22 +25,13 @@ export async function canCreateProjects(userId) {
 }
 
 export function projectVisibilityWhere(user) {
-  return {
-    OR: [
-      { createdBy: user.id },
-      { members: { some: { userId: user.id } } }
-    ]
-  };
+  if (user.role === 'ADMIN') return {};
+  return { members: { some: { userId: user.id } } };
 }
 
 export function taskVisibilityWhere(user) {
-  return {
-    OR: [
-      { assignedTo: user.id },
-      { project: { createdBy: user.id } },
-      { project: { members: { some: { userId: user.id } } } }
-    ]
-  };
+  if (user.role === 'ADMIN') return {};
+  return { assignedTo: user.id };
 }
 
 export async function assertProjectAccess(user, projectId, { manage = false } = {}) {
@@ -52,15 +43,13 @@ export async function assertProjectAccess(user, projectId, { manage = false } = 
   if (!project) throw new ApiError(404, 'Project not found');
 
   const membership = project.members[0] || null;
-  const isCreator = project.createdBy === user.id;
   const isMember = Boolean(membership);
-  const isProjectAdmin = membership?.role === 'ADMIN';
 
-  if (manage && user.role !== 'ADMIN' && !isCreator && !isProjectAdmin) {
-    throw new ApiError(403, 'Only the project creator or project admins can manage this project');
+  if (manage && user.role !== 'ADMIN') {
+    throw new ApiError(403, 'Admin access required');
   }
 
-  if (!isCreator && !isMember) {
+  if (user.role !== 'ADMIN' && !isMember) {
     throw new ApiError(403, 'You do not have access to this project');
   }
 
@@ -83,18 +72,14 @@ export async function assertTaskAccess(user, taskId, { manage = false } = {}) {
 
   if (!task) throw new ApiError(404, 'Task not found');
 
-  const membership = task.project.members[0] || null;
-  const isProjectCreator = task.project.createdBy === user.id;
-  const isProjectAdmin = membership?.role === 'ADMIN';
-  const isProjectMember = Boolean(membership);
   const isAssignee = task.assignedTo === user.id;
 
-  if (manage && user.role !== 'ADMIN' && !isProjectCreator && !isProjectAdmin) {
-    throw new ApiError(403, 'You cannot manage this task');
+  if (manage && user.role !== 'ADMIN') {
+    throw new ApiError(403, 'Admin access required');
   }
 
-  if (!isProjectCreator && !isProjectMember && !isAssignee) {
-    throw new ApiError(403, 'You do not have access to this task');
+  if (user.role !== 'ADMIN' && !isAssignee) {
+    throw new ApiError(403, 'You can only access tasks assigned to you');
   }
 
   return task;
@@ -116,18 +101,15 @@ export async function getTaskPermissionContext(user, taskId) {
 
   if (!task) throw new ApiError(404, 'Task not found');
 
-  const membership = task.project.members[0] || null;
-  const isProjectCreator = task.project.createdBy === user.id;
-  const isProjectAdmin = membership?.role === 'ADMIN';
-  const canManage = isProjectCreator || isProjectAdmin;
+  const canManage = user.role === 'ADMIN';
   const canUpdateOwnStatus = task.assignedTo === user.id;
-  const canView = canManage || Boolean(membership) || canUpdateOwnStatus;
+  const canView = canManage || canUpdateOwnStatus;
 
   if (!canView) {
     throw new ApiError(403, 'You do not have access to this task');
   }
 
-  return { task, membership, canManage, canUpdateOwnStatus };
+  return { task, membership: null, canManage, canUpdateOwnStatus };
 }
 
 export async function assertAssigneeIsProjectMember(projectId, assignedTo) {

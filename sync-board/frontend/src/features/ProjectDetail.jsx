@@ -107,18 +107,6 @@ export default function ProjectDetail({ projectId, onChanged, onEdit, onDelete, 
     }
   }
 
-  async function updateTaskStatus(task, status) {
-    setError('');
-    try {
-      await api.patch(`/tasks/${task.id}`, { status });
-      setSuccess('Task status updated successfully.');
-      await load();
-      onChanged?.();
-    } catch (err) {
-      setError(err.message);
-    }
-  }
-
   async function deleteTask(taskId) {
     setError('');
     try {
@@ -375,7 +363,7 @@ export default function ProjectDetail({ projectId, onChanged, onEdit, onDelete, 
         )}
 
         {project.tasks.length ? (
-          <TaskTable tasks={project.tasks} onStatusChange={canManage ? updateTaskStatus : undefined} onDelete={canManage ? (taskId) => setTaskToDelete(project.tasks.find((task) => task.id === taskId) || null) : undefined} compact />
+          <TaskTable tasks={project.tasks} onDelete={canManage ? (taskId) => setTaskToDelete(project.tasks.find((task) => task.id === taskId) || null) : undefined} compact />
         ) : (
           <EmptyState title="No tasks assigned" message={canManage ? 'Create the first task to start tracking delivery for this project.' : 'No tasks have been created in this project yet.'} />
         )}
